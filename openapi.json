@@ -1,0 +1,200 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CSC Dashboard — Ingestão de Coletas",
+    "version": "2.0.0",
+    "description": "Contrato do payload enviado pela extensão 'CSC · Extrator de Dashboard' quando você clica em Enviar em um card. O corpo é sempre application/json e corresponde ao mesmo JSON do botão 'Baixar JSON'."
+  },
+  "servers": [
+    {
+      "url": "https://SEU-SERVIDOR/endpoint",
+      "description": "URL configurada em 'Configuração de envio' na extensão."
+    }
+  ],
+  "paths": {
+    "/": {
+      "post": {
+        "summary": "Recebe uma coleta do dashboard",
+        "description": "A extensão faz POST deste corpo para a URL configurada. Sem autenticação por padrão; adicione um header/token se o seu servidor exigir.",
+        "operationId": "ingerirColeta",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DashboardPayload" },
+              "example": {
+                "extraidoEm": "2026-06-30T21:39:02.000Z",
+                "origem": {
+                  "url": "https://csc.exemplo/DefaultNovoDashBoard.aspx?Empresaid=5&Userid=4833",
+                  "empresaId": 5,
+                  "userId": 4833,
+                  "grupos": "1940"
+                },
+                "indicadores": {
+                  "tempoMedioAtendimentoHoras": 218.96,
+                  "tempoMedioAtendimentoHHMM": "218:96",
+                  "satisfacaoCliente": null,
+                  "chamadosEmAberto": 308,
+                  "chamadosAbertosForaPrazo": 7,
+                  "chamadosFechados": 287
+                },
+                "chamadosPorDepartamento": [
+                  { "area": "RES_NED/CEAD_Gestão_do_Ambiente_Virtual", "quantidade": 23 }
+                ],
+                "rankingAtendimento": [
+                  { "nome": "Lucas Henrique Batista França", "quantidade": 51 },
+                  { "nome": "Bruno Henrique Nunes Morais", "quantidade": 48 }
+                ],
+                "abertosFechados": { "total": 595, "abertos": 308, "fechados": 287 },
+                "chamadosStatus": [
+                  { "nome": "Acumulados", "quantidade": 287 },
+                  { "nome": "Não resolvidos", "quantidade": 308 }
+                ],
+                "slaMensal": [
+                  { "mes": "jan", "valor": 82.27 },
+                  { "mes": "fev", "valor": 90.28 }
+                ],
+                "mensalAbertosFechados": {
+                  "abertos": [ { "mes": "Jan", "valor": 76 } ],
+                  "fechados": [ { "mes": "Jan", "valor": 70 } ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Coleta recebida com sucesso." },
+          "400": { "description": "Payload inválido." },
+          "401": { "description": "Não autorizado (token/credencial ausente ou inválido)." },
+          "500": { "description": "Erro interno no servidor de destino." }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DashboardPayload": {
+        "type": "object",
+        "description": "Snapshot completo do Dashboard de Chamados no momento do registro.",
+        "required": [
+          "extraidoEm", "origem", "indicadores", "chamadosPorDepartamento",
+          "rankingAtendimento", "abertosFechados", "chamadosStatus",
+          "slaMensal", "mensalAbertosFechados"
+        ],
+        "properties": {
+          "extraidoEm": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data/hora (ISO 8601, UTC) em que a coleta foi extraída da página."
+          },
+          "origem": { "$ref": "#/components/schemas/Origem" },
+          "indicadores": { "$ref": "#/components/schemas/Indicadores" },
+          "chamadosPorDepartamento": {
+            "type": "array",
+            "description": "Quantidade de chamados por área/departamento.",
+            "items": { "$ref": "#/components/schemas/Departamento" }
+          },
+          "rankingAtendimento": {
+            "type": "array",
+            "description": "Ranking de atendimentos por atendente.",
+            "items": { "$ref": "#/components/schemas/RankingItem" }
+          },
+          "abertosFechados": { "$ref": "#/components/schemas/AbertosFechados" },
+          "chamadosStatus": {
+            "type": "array",
+            "description": "Chamados acumulados e não resolvidos (donut).",
+            "items": { "$ref": "#/components/schemas/StatusItem" }
+          },
+          "slaMensal": {
+            "type": "array",
+            "description": "SLA (%) por mês.",
+            "items": { "$ref": "#/components/schemas/SlaItem" }
+          },
+          "mensalAbertosFechados": { "$ref": "#/components/schemas/MensalAbertosFechados" }
+        }
+      },
+      "Origem": {
+        "type": "object",
+        "description": "Identificação da página/origem da coleta.",
+        "properties": {
+          "url": { "type": "string", "description": "URL completa do dashboard no momento da coleta." },
+          "empresaId": { "type": "integer", "nullable": true, "description": "ID da empresa (campo hidEmpresaid)." },
+          "userId": { "type": "integer", "nullable": true, "description": "ID do gestor logado (hidUserid)." },
+          "grupos": { "type": "string", "nullable": true, "description": "Grupos associados (hidGrupos)." }
+        }
+      },
+      "Indicadores": {
+        "type": "object",
+        "description": "Indicadores do topo do dashboard (gauges).",
+        "properties": {
+          "tempoMedioAtendimentoHoras": { "type": "number", "nullable": true, "description": "Tempo médio de atendimento em horas (decimal). Ex.: 218.96." },
+          "tempoMedioAtendimentoHHMM": { "type": "string", "nullable": true, "description": "Mesmo tempo no formato HH:MM bruto do CSC (ex.: '218:96'); pode ter minutos > 59." },
+          "satisfacaoCliente": { "type": "number", "nullable": true, "description": "Índice de satisfação (%). null quando o sistema retorna NaN." },
+          "chamadosEmAberto": { "type": "integer", "nullable": true, "description": "Chamados em aberto." },
+          "chamadosAbertosForaPrazo": { "type": "integer", "nullable": true, "description": "Chamados abertos fora do período/prazo." },
+          "chamadosFechados": { "type": "integer", "nullable": true, "description": "Chamados fechados." }
+        }
+      },
+      "Departamento": {
+        "type": "object",
+        "properties": {
+          "area": { "type": "string", "description": "Nome da área/departamento." },
+          "quantidade": { "type": "integer", "description": "Quantidade de chamados na área." }
+        }
+      },
+      "RankingItem": {
+        "type": "object",
+        "properties": {
+          "nome": { "type": "string", "description": "Nome do atendente." },
+          "quantidade": { "type": "integer", "description": "Quantidade de chamados atendidos." }
+        }
+      },
+      "AbertosFechados": {
+        "type": "object",
+        "description": "Totais consolidados de chamados.",
+        "properties": {
+          "total": { "type": "integer", "description": "Total de chamados." },
+          "abertos": { "type": "integer", "description": "Chamados abertos." },
+          "fechados": { "type": "integer", "description": "Chamados fechados." }
+        }
+      },
+      "StatusItem": {
+        "type": "object",
+        "properties": {
+          "nome": { "type": "string", "description": "'Acumulados' ou 'Não resolvidos'." },
+          "quantidade": { "type": "integer", "description": "Quantidade correspondente." }
+        }
+      },
+      "SlaItem": {
+        "type": "object",
+        "properties": {
+          "mes": { "type": "string", "description": "Mês abreviado (jan, fev, mar, ...)." },
+          "valor": { "type": "number", "description": "SLA em % (0–100)." }
+        }
+      },
+      "MensalItem": {
+        "type": "object",
+        "properties": {
+          "mes": { "type": "string", "description": "Mês abreviado (Jan, Fev, ...)." },
+          "valor": { "type": "integer", "description": "Quantidade no mês." }
+        }
+      },
+      "MensalAbertosFechados": {
+        "type": "object",
+        "description": "Séries mensais de chamados abertos e fechados (12 meses).",
+        "properties": {
+          "abertos": {
+            "type": "array",
+            "description": "Série mensal de chamados abertos.",
+            "items": { "$ref": "#/components/schemas/MensalItem" }
+          },
+          "fechados": {
+            "type": "array",
+            "description": "Série mensal de chamados fechados.",
+            "items": { "$ref": "#/components/schemas/MensalItem" }
+          }
+        }
+      }
+    }
+  }
+}

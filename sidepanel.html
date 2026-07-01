@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --azul: #2563eb;
+      --azul-h: #1d4ed8;
+      --verde: #15803d;
+      --vermelho: #b91c1c;
+      --borda: #e5e7eb;
+      --cinza: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font: 13px/1.45 system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 14px;
+      color: #111827;
+      background: #f9fafb;
+    }
+    h1 { font-size: 15px; margin: 0 0 2px; }
+    .sub { color: var(--cinza); font-size: 12px; margin: 0 0 12px; }
+
+    .box {
+      background: #fff;
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    details > summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary::before { content: "⚙"; }
+    label { display: block; font-size: 12px; color: #374151; margin: 10px 0 4px; }
+    input[type="url"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--borda);
+      border-radius: 8px;
+      font: inherit;
+    }
+    .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 8px 10px;
+    }
+    button:disabled { opacity: .55; cursor: default; }
+    .btn-primary { background: var(--azul); color: #fff; width: 100%; padding: 11px; font-size: 14px; }
+    .btn-primary:hover:not(:disabled) { background: var(--azul-h); }
+    .btn-sec { background: #eef2ff; color: var(--azul-h); border: 1px solid #e0e7ff; }
+    .btn-sec:hover:not(:disabled) { background: #e0e7ff; }
+    .icon-btn { background: transparent; color: var(--cinza); padding: 2px 6px; font-size: 14px; }
+    .icon-btn:hover { color: var(--vermelho); }
+
+    .aba-atual { font-size: 11px; color: var(--cinza); margin: 8px 0 4px; }
+    .aba-atual b { color: #111827; }
+
+    #status { font-size: 12px; margin: 8px 0; min-height: 16px; }
+    .ok { color: var(--verde); }
+    .erro { color: var(--vermelho); }
+    .info { color: var(--azul-h); }
+    .muted { color: var(--cinza); }
+
+    .lista { display: flex; flex-direction: column; gap: 10px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    .card-head { display: flex; justify-content: space-between; align-items: center; }
+    .card-data { font-weight: 700; font-size: 12.5px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .chip {
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 11px;
+      color: #374151;
+    }
+    .chip b { color: #111827; }
+    .acoes { display: flex; gap: 8px; }
+    .acoes button { flex: 1; }
+    .envio-status { font-size: 11px; margin-top: 8px; }
+    .vazio { color: var(--cinza); font-size: 12px; text-align: center; padding: 18px 8px; }
+  </style>
+</head>
+<body>
+  <h1>CSC · Extrator de Dashboard</h1>
+  <p class="sub">Abra o Dashboard de Chamados na aba ao lado e registre uma coleta.</p>
+
+  <div class="box">
+    <details id="cfg">
+      <summary>Configuração de envio</summary>
+      <label for="url">URL de destino (POST)</label>
+      <input type="url" id="url" placeholder="https://seu-servidor/endpoint" />
+      <div class="row">
+        <button class="btn-sec" id="salvar">Salvar URL</button>
+        <span id="cfg-status" class="muted"></span>
+      </div>
+      <div class="row" style="margin-top: 12px">
+        <button class="btn-sec" id="manual">📖 Manual da API</button>
+        <button class="btn-sec" id="baixar-openapi">⬇ OpenAPI</button>
+      </div>
+    </details>
+  </div>
+
+  <div class="box">
+    <div class="aba-atual">Aba ativa: <b id="aba">—</b></div>
+    <button class="btn-primary" id="registrar">＋ Registrar coleta atual</button>
+    <div id="status" class="muted"></div>
+  </div>
+
+  <div class="lista" id="lista"></div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

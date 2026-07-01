@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "CSC · Extrator de Dashboard",
+  "version": "2.0.0",
+  "description": "Registra os dados do Dashboard de Chamados (CSC) em cards, com download do JSON e envio via POST para uma URL configurável.",
+  "permissions": ["scripting", "storage", "sidePanel", "tabs"],
+  "optional_host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Abrir painel do Extrator CSC" },
+  "side_panel": { "default_path": "sidepanel.html" }
+}
